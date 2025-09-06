@@ -1,10 +1,11 @@
-import './globals.css';
-import type { ReactNode } from 'react';
-import Providers from './providers';
+import "./globals.css";
+import type { ReactNode } from "react";
+import Providers from "./providers";
+import AppShell from "./components/AppShell";
 
 export const metadata = {
-  title: 'TEA Dashboard',
-  description: 'Panel de control',
+  title: "TEA Dashboard",
+  description: "Panel de control",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
@@ -12,7 +13,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="es">
       <body className="min-h-screen bg-zinc-50 text-zinc-900">
         <Providers>
-          <div className="max-w-6xl mx-auto p-4">{children}</div>
+          <AppShell>{children}</AppShell>
         </Providers>
       </body>
     </html>

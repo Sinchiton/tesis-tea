@@ -3,11 +3,20 @@ import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { api, loadAccessToken } from "@/lib/api";
 import type { Provider, ProviderType } from "@/lib/types";
+import Can from "../components/Can";
+
+// helper de error (local)
+function getErrorMessage(err: any): string {
+  const data = err?.response?.data;
+  const detail = data?.detail ?? data?.message ?? data?.error ?? err?.message ?? err;
+  if (Array.isArray(detail)) return detail.map((d: any) => d?.msg || JSON.stringify(d)).join("; ");
+  if (typeof detail === "object") return detail?.msg ? String(detail.msg) : (() => { try { return JSON.stringify(detail); } catch { return String(detail); } })();
+  return String(detail);
+}
 
 // ✅ helper local en vez de JSON.parseSafe
 function parseJSONSafe<T = any>(text: string): T | null {
   try {
-    // si viene vacío, trata como null
     if (!text || !text.trim()) return null;
     return JSON.parse(text) as T;
   } catch {
@@ -26,7 +35,10 @@ export default function ProvidersPage() {
   return (
     <div className="space-y-6">
       <h1 className="text-xl font-semibold">Proveedores</h1>
-      <CreateProvider onCreated={() => qc.invalidateQueries({ queryKey: ["providers"] })} />
+
+      <Can perm="providers.write">
+        <CreateProvider onCreated={() => qc.invalidateQueries({ queryKey: ["providers"] })} />
+      </Can>
 
       <div className="rounded-lg border bg-white">
         <table className="min-w-full text-sm">
@@ -69,14 +81,14 @@ function CreateProvider({ onCreated }: { onCreated: () => void }) {
   async function submit(e: React.FormEvent) {
     e.preventDefault(); setMsg(""); setSaving(true);
     try {
-      const safeConfig = parseJSONSafe(config); // ✅ usar helper
+      const safeConfig = parseJSONSafe(config);
       await api.post("/providers", {
         type, vendor, config: safeConfig, api_key: apiKey,
       } as any);
       setMsg("Proveedor creado ✔"); setApiKey(""); setConfig("{}");
       onCreated();
-    } catch (err) {
-      setMsg("Error al crear proveedor (revisa JSON de config)");
+    } catch (err:any) {
+      setMsg(getErrorMessage(err));
     } finally { setSaving(false); }
   }
 

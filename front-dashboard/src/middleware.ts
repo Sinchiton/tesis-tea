@@ -1,11 +1,12 @@
+// front-dashboard/src/middleware.ts
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-const PUBLIC = ["/login", "/_next", "/favicon.ico", "/public"];
+const PUBLIC = ["/", "/login", "/register", "/_next", "/favicon.ico", "/public"];
 
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
-  if (PUBLIC.some((p) => pathname.startsWith(p))) return NextResponse.next();
+  if (PUBLIC.some(p => pathname === p || pathname.startsWith(p))) return NextResponse.next();
 
   const token = req.cookies.get("access_token")?.value;
   if (!token && pathname !== "/login") {
@@ -17,6 +18,4 @@ export function middleware(req: NextRequest) {
   return NextResponse.next();
 }
 
-export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
-};
+export const config = { matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"] };
