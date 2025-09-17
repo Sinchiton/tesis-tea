@@ -1,0 +1,58 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: tea_db
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-tea}
+      POSTGRES_USER: ${POSTGRES_USER:-tea}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-tea}
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      # opcional para SQL de arranque (solo DEV):
+      - ./database/init:/docker-entrypoint-initdb.d
+
+  backend:
+    build: ./backend
+    container_name: tea_api
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg2://tea:tea@db:5432/tea}
+      JWT_SECRET: ${JWT_SECRET:-devsecret-change}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost}
+      AUTO_SEED: ${AUTO_SEED:-1}
+    expose:
+      - "8000"
+    depends_on:
+      - db
+    volumes:
+      - ./backend/app/uploads:/app/uploads
+
+  frontend:
+    build:
+      context: ./front-dashboard
+      dockerfile: Dockerfile.prod
+    container_name: tea_front
+    environment:
+      # Lo ideal: usar ruta relativa en el front: "/api"
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-/api}
+    expose:
+      - "3000"
+    depends_on:
+      - backend
+
+  nginx:
+    image: nginx:alpine
+    container_name: tea_nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./front-dashboard/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - frontend
+      - backend
+
+volumes:
+  db-data:

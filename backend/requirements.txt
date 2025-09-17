@@ -1,0 +1,11 @@
+fastapi[standard]==0.115.0
+uvicorn[standard]==0.30.6
+pydantic==2.9.2
+python-multipart==0.0.9
+# Si usas Postgres sin compilar:
+psycopg[binary]==3.2.1
+# o asíncrono:
+# asyncpg==0.29.0
+# Autenticación/JWT si aplica:
+python-jose==3.3.0
+passlib[bcrypt]==1.7.4
